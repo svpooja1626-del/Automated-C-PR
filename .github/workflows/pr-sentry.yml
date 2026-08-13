@@ -1,0 +1,22 @@
+name: PR Sentry Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '**/*.cs'
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run PR Sentry C# Reviewer
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
