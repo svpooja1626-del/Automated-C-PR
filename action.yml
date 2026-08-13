@@ -1,0 +1,11 @@
+name: 'PR Sentry Reviewer'
+description: 'Automatically reviews C# Pull Requests for SOLID, Null-Safety, and Async Correctness'
+author: 'Antigravity'
+inputs:
+  github-token:
+    description: 'The GitHub Token for making API requests'
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: 'node20'
+  main: 'index.js'

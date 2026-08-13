@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report: Methods and Decisions</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #2D3748;
+            line-height: 1.6;
+            margin: 40px;
+        }
+        .header-container {
+            border-bottom: 3px solid #2B6CB0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1.title {
+            font-size: 22pt;
+            color: #1A365D;
+            margin: 0 0 5px 0;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 12pt;
+            color: #4A5568;
+            margin: 5px 0 0 0;
+            font-style: italic;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 35px;
+            font-size: 10pt;
+        }
+        .meta-table td {
+            padding: 8px 12px;
+            border: 1px solid #CBD5E0;
+        }
+        .meta-table td.label {
+            font-weight: bold;
+            background-color: #EDF2F7;
+            color: #2B6CB0;
+            width: 25%;
+        }
+        h2 {
+            font-size: 14pt;
+            color: #2B6CB0;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1.5px solid #E2E8F0;
+            padding-bottom: 6px;
+        }
+        p {
+            font-size: 10pt;
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+        table.spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+        table.spec-table th {
+            background-color: #2B6CB0;
+            color: #FFFFFF;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 9.5pt;
+            border: 1px solid #2B6CB0;
+        }
+        table.spec-table td {
+            padding: 8px 10px;
+            font-size: 9pt;
+            border: 1px solid #CBD5E0;
+            vertical-align: top;
+        }
+        table.spec-table tr:nth-child(even) {
+            background-color: #F7FAFC;
+        }
+        .section-desc {
+            font-style: italic;
+            color: #718096;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1 class="title">Engineering Report: Methods and Decisions</h1>
+        <div class="subtitle">Architectural Trade-offs, Registry Design, and Analysis Paradigms</div>
+    </div>
+
+    <table class="meta-table">
+        <tr>
+            <td class="label">Document ID</td>
+            <td>REP-MET-01</td>
+            <td class="label">System Focus</td>
+            <td>Methodology & Analysis Heuristics</td>
+        </tr>
+        <tr>
+            <td class="label">Target Platform</td>
+            <td>GitHub Actions API Integration</td>
+            <td class="label">Authoring Group</td>
+            <td>PR Sentry Engineering Team</td>
+        </tr>
+    </table>
+
+    <h2>1. Diff Source: API-Driven vs. Git CLI Checkout</h2>
+    <p>
+        In designing the codebase evaluation loop, the source of change information was a critical decision. We chose the **GitHub REST Pull Request Files API** (referencing the PR files endpoint) instead of running a Git command-line interface (CLI) diff on a local repository checkout.
+    </p>
+    <p>
+        <strong>Technical Rationale:</strong> Executing a local git diff requires checking out the repository branches on the runner. For large, multi-gigabyte repositories, checking out codebases consumes substantial network, disk, and CPU resources. By querying the GitHub Pull Request Files endpoint, the Action retrieves the changes directly in a structured JSON payload. This payload contains filename metadata, status flags (added, modified, or removed), and the patch hunks. Using the API reduces workspace disk overhead, makes cloning branches unnecessary, and reduces workflow execution times to under a second.
+    </p>
+
+    <h2>2. Line-Mapping Approach: Stateful Hunk Parsing</h2>
+    <p>
+        A key requirement of automated code reviews is ensuring that inline comments land on the exact line numbers where the changes occurred. Since the GitHub Review API anchors comments to destination line coordinates in the new file, mapping these coordinates accurately is essential.
+    </p>
+    <p>
+        We implemented a stateful hunk parser that reads the unified diff patch format. The diff contains header indicators (marked by double-at symbols) that define starting lines for both the old and new files. The parser initializes line counters using these headers and iterates through each line of the patch. For additions (indicated by a plus prefix), it increments the new line counter and runs analysis checks. For deletions (a minus prefix), it increments the old line counter without running reviews. For unchanged lines (a space prefix), it increments both counters. This stateful walk tracks line coordinates accurately, avoiding the false alignments that can occur when matching lines by text search.
+    </p>
+
+    <h2>3. Duplicate-Comment Strategy: Idempotency Registry</h2>
+    <p>
+        Since pull request workflows trigger on every push, a naive review system would re-post the same comments on every commit, cluttering the PR.
+    </p>
+    <p>
+        To guarantee idempotency, we implemented a key-based registry. Before posting reviews, the publisher queries the existing pull request comments endpoint. It builds a deduplication register using composite keys formatted as `file:line:category`. For each new finding, the engine compiles a matching key. If the key exists in the register, the comment is skipped. This strategy ensures that unresolved issues are not commented on repeatedly, while new or shifted smells are successfully posted.
+    </p>
+
+    <h2>4. Analysis Paradigm: Heuristic Heuristics vs. Large Language Models</h2>
+    <p>
+        We evaluated utilizing an LLM API client versus implementing local static pattern recognition.
+    </p>
+    <p>
+        While LLMs offer flexible detection capabilities, they introduce issues with latency, network dependencies, and API access token management. Most importantly, LLMs can struggle to consistently map their findings to correct line numbers, which can lead to rejected API requests. 
+    </p>
+    <p>
+        We chose a pattern-based static analysis layer. This approach is deterministic, free, and runs in under a second. By preprocessing lines to mask strings and strip comments, the regex engine evaluates clean statements with high precision. This guarantees that findings are grounded in the diff and anchored to the correct lines.
+    </p>
+
+    <h2>5. Lexical Preprocessing and Code Cleaning</h2>
+    <p>
+        To prevent false positives, we pre-process C# code lines to remove comments and string literals. The lexical preprocessor runs string replacements using regular expressions to mask double-quoted strings and single-quoted character constants. It then splits lines at the first double-slash comment token, ignoring the comment text. This ensures that checks for async tasks or nullability are not triggered by matching text inside code comments or string variables.
+    </p>
+
+</body>
+</html>

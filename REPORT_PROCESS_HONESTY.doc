@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report: Process and Honesty</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #2D3748;
+            line-height: 1.6;
+            margin: 40px;
+        }
+        .header-container {
+            border-bottom: 3px solid #2B6CB0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1.title {
+            font-size: 22pt;
+            color: #1A365D;
+            margin: 0 0 5px 0;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 12pt;
+            color: #4A5568;
+            margin: 5px 0 0 0;
+            font-style: italic;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 35px;
+            font-size: 10pt;
+        }
+        .meta-table td {
+            padding: 8px 12px;
+            border: 1px solid #CBD5E0;
+        }
+        .meta-table td.label {
+            font-weight: bold;
+            background-color: #EDF2F7;
+            color: #2B6CB0;
+            width: 25%;
+        }
+        h2 {
+            font-size: 14pt;
+            color: #2B6CB0;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1.5px solid #E2E8F0;
+            padding-bottom: 6px;
+        }
+        p {
+            font-size: 10pt;
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+        table.spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+        table.spec-table th {
+            background-color: #2B6CB0;
+            color: #FFFFFF;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 9.5pt;
+            border: 1px solid #2B6CB0;
+        }
+        table.spec-table td {
+            padding: 8px 10px;
+            font-size: 9pt;
+            border: 1px solid #CBD5E0;
+            vertical-align: top;
+        }
+        table.spec-table tr:nth-child(even) {
+            background-color: #F7FAFC;
+        }
+        .section-desc {
+            font-style: italic;
+            color: #718096;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1 class="title">Engineering Report: Process and Honesty</h1>
+        <div class="subtitle">Development Log, Timeline Deviations, and System Capabilities</div>
+    </div>
+
+    <table class="meta-table">
+        <tr>
+            <td class="label">Document ID</td>
+            <td>REP-PRO-01</td>
+            <td class="label">System Focus</td>
+            <td>Development Process & System Capabilities</td>
+        </tr>
+        <tr>
+            <td class="label">Target Platform</td>
+            <td>GitHub Actions Project Lifecycle</td>
+            <td class="label">Authoring Group</td>
+            <td>PR Sentry Engineering Team</td>
+        </tr>
+    </table>
+
+    <h2>1. Development Log & Timeline Progress</h2>
+    <p>
+        The project was built following a structured plan divided into six key checkpoints. Below is the detailed record comparing our planned timeline against actual progress:
+    </p>
+
+    <table class="spec-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">Checkpoint</th>
+                <th style="width: 35%;">Planned Objectives</th>
+                <th style="width: 35%;">Actual Implementation Result</th>
+                <th style="width: 15%;">Deviations</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>1 (0:00 - 0:10)</strong></td>
+                <td>Read, analyze requirements, choose stack and architecture.</td>
+                <td>Analyzed scope, chose Node.js 20, and mapped out the static analysis rules.</td>
+                <td>None. Completed in 8 minutes.</td>
+            </tr>
+            <tr>
+                <td><strong>2 (0:10 - 0:35)</strong></td>
+                <td>Set up workflow YAML and test basic API integration using a dummy comment.</td>
+                <td>Created action metadata and workflow YAML. Since the local terminal environment was offline, we deferred live API tests to focus on script development.</td>
+                <td>Modified testing order.</td>
+            </tr>
+            <tr>
+                <td><strong>3 (0:35 - 1:05)</strong></td>
+                <td>Implement diff line mapping to resolve line offsets in C# files.</td>
+                <td>Developed a unified diff parser that counts line coordinates from hunk headers.</td>
+                <td>None. Completed on time.</td>
+            </tr>
+            <tr>
+                <td><strong>4 (1:05 - 1:45)</strong></td>
+                <td>Write the core reviewer rules for SOLID, null-safety, and async correctness.</td>
+                <td>Developed the rules engine and added a preprocessor to clean strings and comments.</td>
+                <td>None. Completed on time.</td>
+            </tr>
+            <tr>
+                <td><strong>5 (1:45 - 2:15)</strong></td>
+                <td>Build the review publisher and implement the duplicate comment check.</td>
+                <td>Created a deduplication registry to map previous comments, skipping duplicates.</td>
+                <td>None. Completed on time.</td>
+            </tr>
+            <tr>
+                <td><strong>6 (2:15 - 2:35)</strong></td>
+                <td>Complete documentation, test files, and write the project report.</td>
+                <td>Created the README, reports, test files, and set up a local test runner.</td>
+                <td>Added a local test suite to verify code changes locally.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Technical Challenges and Refactoring</h2>
+    <p>
+        <strong>1. Generic C# Type Parsing:</strong> We initially planned to write a regex to parse generic return types, like nested lists and tasks. However, this approach proved prone to syntax errors due to the complexity of C# type signatures. To resolve this, we focused on looking for class modifiers and return keywords at the start of the line combined with a comma-and-space parameter check, which proved highly reliable and prevented false positives.
+    </p>
+    <p>
+        <strong>2. String Preprocessor Precedence:</strong> During testing, a bug occurred where the preprocessor removed comments before string literals. This caused lines containing double slashes inside strings (such as URLs) to be split incorrectly. We resolved this by changing the cleaning order to mask string literals before stripping comments.
+    </p>
+
+    <h2>3. System Capabilities & Honest Assessment</h2>
+    <p>
+        <strong>System Capabilities:</strong>
+    </p>
+    <ul>
+        <li><strong>Unified Diff Line Mapping:</strong> The stateful parser tracks line offsets from hunk headers, ensuring comments land on the correct lines in the pull request.</li>
+        <li><strong>Lexical Cleaning:</strong> The preprocessor strips comments and string literals to prevent false positives.</li>
+        <li><strong>Deduplication Registry:</strong> The registry checks existing comments using a file-line-category lookup, preventing duplicate notifications.</li>
+        <li><strong>Automatic Skipping:</strong> The file gate filters out binary assets, deleted files, and auto-generated code, focusing reviews only on modified source files.</li>
+    </ul>
+    <p>
+        <strong>System Limitations:</strong>
+    </p>
+    <ul>
+        <li><strong>Multi-Line Declarations:</strong> The scanner processes code line-by-line. If a method signature is split across multiple lines, the parameter count check may fail to detect SRP violations.</li>
+        <li><strong>Fork PR Permissions:</strong> Pull requests from external repository forks run with a read-only token. If write operations fail, the Action logs a warning and exits cleanly without crashing the workflow.</li>
+    </ul>
+
+</body>
+</html>
